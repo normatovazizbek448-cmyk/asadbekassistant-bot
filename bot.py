@@ -40,4 +40,13 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
 print("Bot ishga tushdi...")
 
-app.run_polling()
+import asyncio
+
+async def main():
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    asyncio.run(main())
