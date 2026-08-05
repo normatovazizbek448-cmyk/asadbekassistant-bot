@@ -1,52 +1,48 @@
+import os
 from telegram import Update
 from telegram.ext import (
-    ApplicationBuilder,
+    Application,
     CommandHandler,
     MessageHandler,
     ContextTypes,
     filters,
 )
 from openai import OpenAI
-import os
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🤖 Assalomu alaykum!\n\nMen Asadbek Assistant AI.\nMenga istalgan savolni yozing."
+        "🤖 Assalomu alaykum!\n\nMen Asadbek Assistant AI.\nSavolingizni yozing."
     )
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_message = update.message.text
+        user_text = update.message.text
 
         response = client.responses.create(
             model="gpt-5",
-            input=user_message
+            input=user_text,
         )
 
         await update.message.reply_text(response.output_text)
 
     except Exception as e:
-        await update.message.reply_text(f"Xatolik:\n{e}")
+        await update.message.reply_text(f"Xatolik: {e}")
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, chat)
+    )
 
-print("Bot ishga tushdi...")
-
-import asyncio
-
-async def main():
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling()
-    await asyncio.Event().wait()
+    print("🤖 Asadbek Assistant ishga tushdi...")
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
